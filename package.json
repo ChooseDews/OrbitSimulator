@@ -1,0 +1,19 @@
+{
+  "name": "orbitsimulator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel index.html",
+    "build": "parcel build index.html -d docs --public-url ./",
+    "postinstall": "npm install -g parcel"
+  },
+  "author": "John Dews-Flick",
+  "license": "ISC",
+  "dependencies": {
+    "jquery": "^3.4.1",
+    "three": "^0.113.2",
+    "vue": "^2.6.11"
+  }
+}
