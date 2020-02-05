@@ -5,7 +5,7 @@ let timeSpan = 0.0009;
 
 exports.step = function (position, velocity, G, iterations, interval) {
     let t = interval || timeSpan;
-    if (!G) G = 396600.4;
+    if (!G) G = 398600.4418;
 
     for (let n = 0; n < iterations; n++) {
         let [px, py, pz] = position;
