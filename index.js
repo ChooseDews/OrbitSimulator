@@ -4,9 +4,7 @@ let $ = j.default;
 import { TrackballControls } from "three/examples/jsm/controls/TrackballControls.js";
 import { WEBGL } from "three/examples/jsm/WebGL.js";
 let orbitSolver = require("./numericOrbitSolver");
-if (WEBGL.isWebGL2Available() === false) {
-  document.body.appendChild(WEBGL.getWebGL2ErrorMessage());
-}
+
 let container,
   container2,
   camera,
@@ -32,7 +30,8 @@ container = document.getElementById("container");
 
 // renderer
 renderer = new THREE.WebGLRenderer();
-renderer.capabilities.isWebGL2 = true;
+
+//renderer.capabilities.isWebGL2 = true;
 renderer.setClearColor(0x000000, 1);
 renderer.setSize(window.innerWidth, window.innerHeight);
 container.appendChild(renderer.domElement);
