@@ -1,1 +1,3 @@
-# Orbit-Simulator
+# Orbit Simulator
+
+Two body orbit simulator.
