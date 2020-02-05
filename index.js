@@ -192,7 +192,6 @@ let addPoint = function(p) {
     scene.add( line );
     points = [];
   };
-  lastPoint = p;
 };
 
 //init position & velocity
@@ -220,7 +219,6 @@ function render() {
 //handle orbit calculations
 (function() {
   setInterval(function() {
-    console.time("test");
 
     let newValues = orbitSolver.step(position, velocity, 396600.4, 300000);
     position = newValues.r;
@@ -241,8 +239,7 @@ function render() {
     stats.radius.max = Math.max(stats.radius.max, r);
     stats.radius.current = r;
     setText(stats);
-    console.timeEnd("test");
-  }, 90);
+  }, 85);
 })();
 
 //drawing & animations
