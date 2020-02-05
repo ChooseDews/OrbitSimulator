@@ -79,7 +79,7 @@ accelerationVector.normalize();
 let accelerationArrow = new THREE.ArrowHelper(
   accelerationVector,
   spacecraft.position.clone(),
-  15,
+  40,
   0xff0000
 );
 scene.add(accelerationArrow);
@@ -88,17 +88,21 @@ velocityVector.normalize();
 let velocityArrow = new THREE.ArrowHelper(
   velocityVector,
   spacecraft.position.clone(),
-  20,
+  80,
   0xffff00
 );
 scene.add(velocityArrow);
 
-let updateArrow = function() {
-  velocityArrow.position.set(...position);
-  accelerationArrow.position.set(...position);
+let scale = x => x.map(i => i * scaleFactor);
 
-  let aPos = new THREE.Vector3(...position).negate().normalize();
-  let vPos = new THREE.Vector3(...velocity).normalize();
+let updateArrow = function() {
+  let p = position;
+
+  velocityArrow.position.set(...scale(position));
+  accelerationArrow.position.set(...scale(position));
+
+  let aPos = new THREE.Vector3(...scale(position)).negate().normalize();
+  let vPos = new THREE.Vector3(...scale(velocity)).normalize();
 
   accelerationArrow.setDirection(aPos);
   velocityArrow.setDirection(vPos);
