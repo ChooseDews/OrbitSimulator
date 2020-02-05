@@ -5,6 +5,9 @@ body {
   padding: 0px;
   overflow: hidden;
 }
+h3{
+  margin-top: 0;
+}
 #info {
   text-align: center;
   color: #000;

@@ -1,7 +1,7 @@
 let exports = {};
 
 
-let timeSpan = 0.001;
+let timeSpan = 0.0009;
 
 exports.step = function (position, velocity, G, iterations, interval) {
     let t = interval || timeSpan;

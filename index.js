@@ -118,8 +118,8 @@ let curve = new THREE.EllipseCurve(
   false, // aClockwise
   0 // aRotation
 );
-let points = curve.getPoints(50);
-let geometry = new THREE.BufferGeometry().setFromPoints(points);
+let ps = curve.getPoints(50);
+let geometry = new THREE.BufferGeometry().setFromPoints(ps);
 let material = new THREE.LineBasicMaterial({
   color: 0xff0000
 });
@@ -130,7 +130,7 @@ let orbit = new THREE.Line(geometry, material);
 let createCrossRose = function() {
   container2 = document.getElementById("inset");
   renderer2 = new THREE.WebGLRenderer();
-  renderer2.setClearColor(0xf0f0f0, 1);
+  renderer2.setClearColor(0x000000, 1);
   renderer2.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
   container2.appendChild(renderer2.domElement);
 
@@ -182,15 +182,17 @@ window.setOrbit = function() {
   return false;
 };
 
+let points = [];
 let addPoint = function(p) {
-  let geometry = new THREE.BufferGeometry();
-  let n = [p[0] * scaleFactor, p[1] * scaleFactor, p[2] * scaleFactor];
-  geometry.setAttribute("position", new THREE.Float32BufferAttribute(n, 3));
-  let material = new THREE.PointsMaterial({
-    color: 0x888888
-  });
-  let points = new THREE.Points(geometry, material);
-  scene.add(points);
+  points.push( new THREE.Vector3(...scale(p)));
+  if(points.length > 5){
+    var material = new THREE.LineBasicMaterial( { color: 0x0000ff } );
+    var geometry = new THREE.BufferGeometry().setFromPoints( points );
+    var line = new THREE.Line( geometry, material )
+    scene.add( line );
+    points = [];
+  };
+  lastPoint = p;
 };
 
 //init position & velocity
