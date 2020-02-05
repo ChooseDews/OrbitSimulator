@@ -1,8 +1,8 @@
 
 # Orbit Simulator
-Two body orbit simulator for Earth, using an Earth-centered inertial [(ECI)](https://en.wikipedia.org/wiki/Earth-centered_inertial) coordinate system
+Two body orbit simulator for Earth which runs in the browser, using an Earth-centered inertial [(ECI)](https://en.wikipedia.org/wiki/Earth-centered_inertial) coordinate system
 
-## [Demo](https://choosedews.github.io/OrbitSimulator/)
+## [In Browser Demo](https://choosedews.github.io/OrbitSimulator/)
 ![Demo of orbit simulator](docs/demo.gif)
 
 
