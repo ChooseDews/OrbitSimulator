@@ -1,43 +1,48 @@
 import * as THREE from "three";
 import * as j from "jquery";
 let $ = j.default;
-import { TrackballControls } from "three/examples/jsm/controls/TrackballControls.js";
-import { WEBGL } from "three/examples/jsm/WebGL.js";
-let orbitSolver = require("./numericOrbitSolver");
+import {
+  TrackballControls
+} from "three/examples/jsm/controls/TrackballControls.js";
+let orbitSolver = require("./numericOrbitSolver"); //all the code needed to solve orbits based on position and velocity
 
+//config
+let CANVAS_WIDTH = 100,
+  CANVAS_HEIGHT = 100,
+  CAM_DISTANCE = 200,
+  earthColor = 0x6aa84f,
+  craftColor = 0xadd8e6,
+  OrbitColor = 0x0000ff,
+  earthRadius = 6371, //km
+  craftRadius = 300, //km
+  mu = 398600,
+  accelerationVectorColor = 0xff0000,
+  velocityVectorColor = 0xffff00;
+
+
+//define vars
 let container,
   container2,
   camera,
   controls,
   scene,
   renderer,
-  axes,
   camera2,
   scene2,
   renderer2,
-  axes2,
-  cube,
-  CANVAS_WIDTH = 100,
-  CANVAS_HEIGHT = 100,
-  CAM_DISTANCE = 200,
-  earthColor = 0x6aa84f,
-  craftColor = 0xadd8e6;
+  axes2;
 
-// main canvas
-// -----------------------------------------------
-// dom
+
+//setup main canvas
 container = document.getElementById("container");
-
-// renderer
 renderer = new THREE.WebGLRenderer();
-
-//renderer.capabilities.isWebGL2 = true;
 renderer.setClearColor(0x000000, 1);
 renderer.setSize(window.innerWidth, window.innerHeight);
 container.appendChild(renderer.domElement);
+
+
 // scene
 scene = new THREE.Scene();
-
 // camera
 camera = new THREE.PerspectiveCamera(
   50,
@@ -45,17 +50,21 @@ camera = new THREE.PerspectiveCamera(
   1,
   10000
 );
-camera.position.y = 700;
+camera.position.y = 700; //set camera inital position
 camera.position.z = 700;
 camera.position.x = 700;
 
+//setup orbit controls for scene camera
 controls = new TrackballControls(camera, renderer.domElement);
 
-let scaleFactor = 0.01;
 
-//setup earth & spacecraft
+
+let scaleFactor = 0.01; //this converts km to 3d units within the browser. To big and things wont render
+let scale = x => x.map(i => i * scaleFactor);
+
+//setup earth
 let earth = new THREE.Mesh(
-  new THREE.SphereGeometry(6371 * scaleFactor, 8, 8),
+  new THREE.SphereGeometry(earthRadius * scaleFactor, 12, 12),
   new THREE.MeshBasicMaterial({
     color: earthColor,
     wireframe: true
@@ -64,8 +73,11 @@ let earth = new THREE.Mesh(
 scene.add(earth);
 let earthAxes = new THREE.AxisHelper(100);
 scene.add(earthAxes);
+
+
+//setup spacecraft
 let spacecraft = new THREE.Mesh(
-  new THREE.SphereGeometry(300 * scaleFactor, 32, 32),
+  new THREE.SphereGeometry(craftRadius * scaleFactor, 32, 32),
   new THREE.MeshBasicMaterial({
     color: craftColor
   })
@@ -73,13 +85,15 @@ let spacecraft = new THREE.Mesh(
 scene.add(spacecraft);
 spacecraft.position.set(100, 100, 100);
 
-let accelerationVector = spacecraft.position.clone().negate();
+
+//setup velocity and acceleration vector
+let accelerationVector = spacecraft.position.clone().negate(); //points toward the planet
 accelerationVector.normalize();
 let accelerationArrow = new THREE.ArrowHelper(
   accelerationVector,
   spacecraft.position.clone(),
   40,
-  0xff0000
+  accelerationVectorColor
 );
 scene.add(accelerationArrow);
 let velocityVector = new THREE.Vector3(4, 1, 0);
@@ -88,13 +102,13 @@ let velocityArrow = new THREE.ArrowHelper(
   velocityVector,
   spacecraft.position.clone(),
   80,
-  0xffff00
+  velocityVectorColor
 );
 scene.add(velocityArrow);
 
-let scale = x => x.map(i => i * scaleFactor);
 
-let updateArrow = function() {
+
+let updateArrow = function () { //handles craft acceleration and velocity vector position and direction
   let p = position;
 
   velocityArrow.position.set(...scale(position));
@@ -107,32 +121,13 @@ let updateArrow = function() {
   velocityArrow.setDirection(vPos);
 };
 
-let curve = new THREE.EllipseCurve(
-  0,
-  0, // ax, aY
-  100,
-  50, // xRadius, yRadius
-  0,
-  2 * Math.PI, // aStartAngle, aEndAngle
-  false, // aClockwise
-  0 // aRotation
-);
-let ps = curve.getPoints(50);
-let geometry = new THREE.BufferGeometry().setFromPoints(ps);
-let material = new THREE.LineBasicMaterial({
-  color: 0xff0000
-});
 
-// Create the final object to add to the scene
-let orbit = new THREE.Line(geometry, material);
-
-let createCrossRose = function() {
+let createCrossRose = function () {
   container2 = document.getElementById("inset");
   renderer2 = new THREE.WebGLRenderer();
   renderer2.setClearColor(0x000000, 1);
   renderer2.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
   container2.appendChild(renderer2.domElement);
-
   scene2 = new THREE.Scene();
   camera2 = new THREE.PerspectiveCamera(
     50,
@@ -145,7 +140,7 @@ let createCrossRose = function() {
   scene2.add(axes2);
 };
 
-let setText = function(stats) {
+let setText = function (stats) { //handle updating speed and radius stats
   $("#speed-c").text(stats.speed.current);
   $("#speed-max").text(stats.speed.max);
   $("#speed-min").text(stats.speed.min);
@@ -154,7 +149,18 @@ let setText = function(stats) {
   $("#radius-min").text(stats.radius.min);
 };
 
-window.setOrbit = function() {
+let setCalculatedText = function () { //handle a, e, p values
+  if (!stats) return;
+  let r_max = stats.radius.max;
+  let r_min = stats.radius.min;
+  //calculate orbital paramaters based on the min and max radius
+  let e = (r_max - r_min) / (r_max + r_min);
+  let a = (r_max + r_min) / 2;
+  let par = a * (1 - e * e);
+  $('#o-stats').text(`a=${a.toFixed(4)} p=${par.toFixed(4)} e=${e.toFixed(4)}`)
+};
+
+window.setOrbit = function () { //get position from text feilds and set as craft position
   position = [
     Number($("#p_x").val()),
     Number($("#p_y").val()),
@@ -182,21 +188,28 @@ window.setOrbit = function() {
 };
 
 let points = [];
-let addPoint = function(p) {
-  points.push( new THREE.Vector3(...scale(p)));
-  if(points.length > 5){
-    var material = new THREE.LineBasicMaterial( { color: 0x0000ff } );
-    var geometry = new THREE.BufferGeometry().setFromPoints( points );
-    var line = new THREE.Line( geometry, material )
-    scene.add( line );
+let addPoint = function (p) {
+  points.push(new THREE.Vector3(...scale(p)));
+  if (points.length > 5) {
+    var material = new THREE.LineBasicMaterial({
+      color: OrbitColor
+    });
+    var geometry = new THREE.BufferGeometry().setFromPoints(points);
+    var line = new THREE.Line(geometry, material)
+    scene.add(line);
     points = [];
   };
 };
 
 //init position & velocity
 let norm = v => Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).toFixed(2);
-let position = [30000, 0, 0];
-let velocity = [2, 3, 0];
+//let position = [30000, 0, 0];
+//let velocity = [2, 3, 0];
+
+let position = [5634.297397, -2522.807863, -5037.930889]; //mini-project 1 - Molniya orbit
+let velocity = [8.286176, 1.815144, 3.624759]; //mini-project 1 - Molniya orbit
+
+
 let stats = {
   speed: {
     min: norm(velocity),
@@ -210,25 +223,18 @@ let stats = {
   }
 };
 
-function render() {
-  renderer.render(scene, camera);
-  renderer2.render(scene2, camera2);
-}
-
 //handle orbit calculations
-(function() {
-  setInterval(function() {
+(function () {
+  setInterval(function () { //update craft location every 80ms
 
-    let newValues = orbitSolver.step(position, velocity, 396600.4, 300000);
+    let newValues = orbitSolver.step(position, velocity, mu, 500000); //calculate 500k points each round
     position = newValues.r;
     velocity = newValues.v;
     updateArrow();
-    spacecraft.position.set(
-      position[0] * scaleFactor,
-      position[1] * scaleFactor,
-      position[2] * scaleFactor
-    );
-    addPoint(position);
+    spacecraft.position.set(...scale(position)); //update position. scale is used to make the number feasable for 3d display
+    addPoint(position); //handle orbit tracking line
+
+    //find any changes in the min and max of the orbit
     let v = norm(velocity);
     let r = norm(position);
     stats.speed.min = Math.min(stats.speed.min, v);
@@ -237,9 +243,26 @@ function render() {
     stats.radius.min = Math.min(stats.radius.min, r);
     stats.radius.max = Math.max(stats.radius.max, r);
     stats.radius.current = r;
+
+  }, 80);
+
+
+
+
+  setInterval(function () { //update text stats every 200ms
     setText(stats);
-  }, 85);
+    setCalculatedText(stats);
+  }, 200)
+
+
+
+
 })();
+
+function render() {
+  renderer.render(scene, camera);
+  renderer2.render(scene2, camera2);
+}
 
 //drawing & animations
 createCrossRose();
@@ -247,7 +270,7 @@ createCrossRose();
   requestAnimationFrame(animate);
   controls.update();
   camera2.position.copy(camera.position);
-  camera2.position.sub(controls.target); // added by @libe
+  camera2.position.sub(controls.target);
   camera2.position.setLength(CAM_DISTANCE);
   camera2.lookAt(scene2.position);
   render();
