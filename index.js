@@ -63,12 +63,16 @@ let scaleFactor = 0.01; //this converts km to 3d units within the browser. To bi
 let scale = x => x.map(i => i * scaleFactor);
 
 //setup earth
+
+let earthMaterial = new THREE.MeshBasicMaterial({
+  map: THREE.ImageUtils.loadTexture('./map.jpg')
+});
+
+
+
 let earth = new THREE.Mesh(
-  new THREE.SphereGeometry(earthRadius * scaleFactor, 12, 12),
-  new THREE.MeshBasicMaterial({
-    color: earthColor,
-    wireframe: true
-  })
+  new THREE.SphereGeometry(earthRadius * scaleFactor, 30, 30),
+  earthMaterial
 );
 scene.add(earth);
 let earthAxes = new THREE.AxisHelper(100);
@@ -113,6 +117,9 @@ let updateArrow = function () { //handles craft acceleration and velocity vector
 
   velocityArrow.position.set(...scale(position));
   accelerationArrow.position.set(...scale(position));
+  velocityArrow.setLength(
+    arrowLength(stats.speed)
+  )
 
   let aPos = new THREE.Vector3(...scale(position)).negate().normalize();
   let vPos = new THREE.Vector3(...scale(velocity)).normalize();
@@ -140,24 +147,37 @@ let createCrossRose = function () {
   scene2.add(axes2);
 };
 
+let arrowMin = 0;
+let arrowMax = 200;
+let arrowLength = (stat) => {
+  let j = (stat.current - 0) / (stat.max - 0);
+  let out = j * (arrowMax - arrowMin) + arrowMin;
+  return out || arrowMin;
+}
+
 let setText = function (stats) { //handle updating speed and radius stats
-  $("#speed-c").text(stats.speed.current);
-  $("#speed-max").text(stats.speed.max);
-  $("#speed-min").text(stats.speed.min);
-  $("#radius-c").text(stats.radius.current);
-  $("#radius-max").text(stats.radius.max);
-  $("#radius-min").text(stats.radius.min);
+  $("#speed-c").text(stats.speed.current.toFixed(3));
+  $("#speed-max").text(stats.speed.max.toFixed(3));
+  $("#speed-min").text(stats.speed.min.toFixed(3));
+  $("#radius-c").text(stats.radius.current.toFixed(1));
+  $("#radius-max").text(stats.radius.max.toFixed(1));
+  $("#radius-min").text(stats.radius.min.toFixed(1));
 };
 
 let setCalculatedText = function () { //handle a, e, p values
   if (!stats) return;
   let r_max = stats.radius.max;
   let r_min = stats.radius.min;
+  let r = stats.radius.current;
   //calculate orbital paramaters based on the min and max radius
   let e = (r_max - r_min) / (r_max + r_min);
   let a = (r_max + r_min) / 2;
   let par = a * (1 - e * e);
-  $('#o-stats').text(`a=${a.toFixed(4)} p=${par.toFixed(4)} e=${e.toFixed(4)}`)
+  //let i = par / (e * r) - 1 / e;
+  //let angle = Math.acos(i) * (360 / (2 * Math.PI))
+  $('#o-stats').text(`a=${a.toFixed(3)} (km) p=${par.toFixed(3)} (km) `)
+  $('#c-stats').text(`e=${e.toFixed(3)} t=${(time/60).toFixed(2)} (hr)`)
+
 };
 
 window.setOrbit = function () { //get position from text feilds and set as craft position
@@ -171,6 +191,8 @@ window.setOrbit = function () { //get position from text feilds and set as craft
     Number($("#v_y").val()),
     Number($("#v_z").val())
   ];
+  time = 0;
+  //timeStep = Number($("#step").val());
   stats = {
     speed: {
       min: norm(velocity),
@@ -202,12 +224,14 @@ let addPoint = function (p) {
 };
 
 //init position & velocity
-let norm = v => Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).toFixed(2);
+let norm = v => Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 //let position = [30000, 0, 0];
 //let velocity = [2, 3, 0];
 
 let position = [5634.297397, -2522.807863, -5037.930889]; //mini-project 1 - Molniya orbit
 let velocity = [8.286176, 1.815144, 3.624759]; //mini-project 1 - Molniya orbit
+let time = 0; //in minutes
+let timeStep = 0.0006;
 
 
 let stats = {
@@ -223,11 +247,14 @@ let stats = {
   }
 };
 
+let steps = 500000;
+
 //handle orbit calculations
 (function () {
   setInterval(function () { //update craft location every 80ms
-
-    let newValues = orbitSolver.step(position, velocity, mu, 500000); //calculate 500k points each round
+    if (time / 60 > 2000) return;
+    let newValues = orbitSolver.step(position, velocity, mu, steps, timeStep); //calculate 500k points each round
+    time += (steps * timeStep) / 60;
     position = newValues.r;
     velocity = newValues.v;
     updateArrow();
@@ -243,16 +270,12 @@ let stats = {
     stats.radius.min = Math.min(stats.radius.min, r);
     stats.radius.max = Math.max(stats.radius.max, r);
     stats.radius.current = r;
-
-  }, 80);
-
-
-
-
-  setInterval(function () { //update text stats every 200ms
     setText(stats);
     setCalculatedText(stats);
-  }, 200)
+  }, 100);
+
+
+
 
 
 
@@ -269,6 +292,9 @@ createCrossRose();
 (function animate() {
   requestAnimationFrame(animate);
   controls.update();
+
+  earth.rotation.y = -(2 * Math.PI) * time / 60 / 24;
+
   camera2.position.copy(camera.position);
   camera2.position.sub(controls.target);
   camera2.position.setLength(CAM_DISTANCE);

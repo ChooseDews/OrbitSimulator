@@ -35,6 +35,8 @@
             </table>
             <br>
             <div id="o-stats"></div>
+            <div id="c-stats"></div>
+
         </div>
         <div id="inset">
         </div>
@@ -52,15 +54,18 @@
 
                 </h3>
 
-                <div><span>Position</span><input required step="0.01" id="p_x" type="number" placeholder="X"><input
-                        required step="0.01" id="p_y" type="number" placeholder="Y"><input required step="0.01"
-                        type="number" id="p_z" placeholder="Z">
+                <div><span>Position</span><input required step="0.00000001" id="p_x" type="number"
+                        placeholder="X"><input required step="0.00000001" id="p_y" type="number" placeholder="Y"><input
+                        required step="0.00000001" type="number" id="p_z" placeholder="Z">
                 </div>
-                <div><span>Velocity</span><input required step="0.01" type="number" id="v_x" placeholder="v_x"><input
-                        required step="0.01" type="number" id="v_y" placeholder="V_y"><input required step="0.01"
-                        type="number" placeholder="V_z" id="v_z"></div>
+                <div><span>Velocity</span><input required step="0.00000001" type="number" id="v_x"
+                        placeholder="v_x"><input required step="0.00000001" type="number" id="v_y"
+                        placeholder="V_y"><input required step="0.00000001" type="number" placeholder="V_z" id="v_z">
+                </div>
 
-                <button type="submit" id="setOrbit">Set Orbit Parameters</button>
+
+
+                <button type="submit" id="setOrbit">Set Inital Parameters</button>
 
 
             </form>
