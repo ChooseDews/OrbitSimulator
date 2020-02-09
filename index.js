@@ -13,6 +13,7 @@ let CANVAS_WIDTH = 100,
   earthColor = 0x6aa84f,
   craftColor = 0xadd8e6,
   OrbitColor = 0xffffff,
+  backgroundColor = 0x000000,
   earthRadius = 6371, //km
   craftRadius = 300, //km
   mu = 398600,
@@ -36,7 +37,7 @@ let container,
 //setup main canvas
 container = document.getElementById("container");
 renderer = new THREE.WebGLRenderer();
-renderer.setClearColor(0x000000, 1);
+renderer.setClearColor(backgroundColor, 1);
 renderer.setSize(window.innerWidth, window.innerHeight);
 container.appendChild(renderer.domElement);
 
@@ -61,6 +62,7 @@ controls = new TrackballControls(camera, renderer.domElement);
 
 let scaleFactor = 0.01; //this converts km to 3d units within the browser. To big and things wont render
 let scale = x => x.map(i => i * scaleFactor);
+let scaleFix = x => [x[0] * scaleFactor, x[2] * scaleFactor, -x[1] * scaleFactor]
 
 //setup earth
 
@@ -115,14 +117,14 @@ scene.add(velocityArrow);
 let updateArrow = function () { //handles craft acceleration and velocity vector position and direction
   let p = position;
 
-  velocityArrow.position.set(...scale(position));
-  accelerationArrow.position.set(...scale(position));
+  velocityArrow.position.set(...scaleFix(position));
+  accelerationArrow.position.set(...scaleFix(position));
   velocityArrow.setLength(
     arrowLength(stats.speed)
   )
 
-  let aPos = new THREE.Vector3(...scale(position)).negate().normalize();
-  let vPos = new THREE.Vector3(...scale(velocity)).normalize();
+  let aPos = new THREE.Vector3(...scaleFix(position)).negate().normalize();
+  let vPos = new THREE.Vector3(...scaleFix(velocity)).normalize();
 
   accelerationArrow.setDirection(aPos);
   velocityArrow.setDirection(vPos);
@@ -211,7 +213,7 @@ window.setOrbit = function () { //get position from text feilds and set as craft
 
 let points = [];
 let addPoint = function (p) {
-  points.push(new THREE.Vector3(...scale(p)));
+  points.push(new THREE.Vector3(...scaleFix(p)));
   if (points.length > 5) {
     var material = new THREE.LineBasicMaterial({
       color: OrbitColor
@@ -258,7 +260,7 @@ let steps = 500000;
     position = newValues.r;
     velocity = newValues.v;
     updateArrow();
-    spacecraft.position.set(...scale(position)); //update position. scale is used to make the number feasable for 3d display
+    spacecraft.position.set(...scaleFix(position)); //update position. scale is used to make the number feasable for 3d display
     addPoint(position); //handle orbit tracking line
 
     //find any changes in the min and max of the orbit
@@ -293,7 +295,7 @@ createCrossRose();
   requestAnimationFrame(animate);
   controls.update();
 
-  earth.rotation.y = -(2 * Math.PI) * time / 60 / 24;
+  earth.rotation.y = (2 * Math.PI) * time / 60 / 24;
 
   camera2.position.copy(camera.position);
   camera2.position.sub(controls.target);
