@@ -62,7 +62,7 @@ controls = new TrackballControls(camera, renderer.domElement);
 
 let scaleFactor = 0.01; //this converts km to 3d units within the browser. To big and things wont render
 let scale = x => x.map(i => i * scaleFactor);
-let scaleFix = x => [x[0] * scaleFactor, x[2] * scaleFactor, -x[1] * scaleFactor]
+let scaleFix = x => [x[0] * scaleFactor, x[2] * scaleFactor, x[1] * scaleFactor]
 
 //setup earth
 
@@ -122,6 +122,8 @@ let updateArrow = function () { //handles craft acceleration and velocity vector
   velocityArrow.setLength(
     arrowLength(stats.speed)
   )
+
+  //accelerationArrow.setLength(stats.radius.current*scaleFactor)
 
   let aPos = new THREE.Vector3(...scaleFix(position)).negate().normalize();
   let vPos = new THREE.Vector3(...scaleFix(velocity)).normalize();
