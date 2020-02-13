@@ -7,8 +7,8 @@ Two body orbit simulator for Earth which runs in the browser, using an Earth-cen
 
 
 ## Todo
-- Customize G in UI
-- Customize planet radius in UI
-- Give e, a, p readout
+- Customize GM parameter in UI
+- Customize planet
 - Mark Apoapsis and Periapsis 
+- Calculate Orbital Elements
 
